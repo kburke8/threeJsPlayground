@@ -107,4 +107,8 @@ export class CharacterCustomizationUI {
     this.customization = newCustomization;
     this.initializeUI();
   }
+
+  public getCustomization(): CharacterCustomization {
+    return this.customization;
+  }
 } 

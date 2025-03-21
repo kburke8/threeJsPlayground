@@ -48,11 +48,17 @@ export class CharacterManager {
 
   private async loadPart(part: CharacterPart, type: CharacterPartType): Promise<void> {
     try {
-      // Try to load the actual model
-      await this.loadModelFromUrl(part.modelUrl, type);
+      // If we have a model URL, try to load it
+      if (part.modelUrl) {
+        await this.loadModelFromUrl(part.modelUrl, type);
+      } else {
+        // Otherwise use basic model
+        const basicModelUrl = await createBasicModel(type);
+        await this.loadModelFromUrl(basicModelUrl, type);
+      }
     } catch (error) {
       console.warn(`Failed to load model for ${type}, using basic model:`, error);
-      // Create and load a basic model
+      // Create and load a basic model as fallback
       const basicModelUrl = await createBasicModel(type);
       await this.loadModelFromUrl(basicModelUrl, type);
     }

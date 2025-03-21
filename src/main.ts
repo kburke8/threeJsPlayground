@@ -1,6 +1,9 @@
 import { Game } from './game/Game';
 
+// Create and initialize the game
 const game = new Game();
-game.init().catch((error) => {
-  console.error('Failed to initialize game:', error);
+
+// Handle any errors that occur during game initialization
+window.addEventListener('error', (event) => {
+  console.error('Game error:', event.error);
 }); 

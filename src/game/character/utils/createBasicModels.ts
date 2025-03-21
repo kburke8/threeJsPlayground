@@ -58,7 +58,11 @@ export async function createBasicModel(type: CharacterPartType): Promise<string>
 
       // Add eyes
       const eyeGeometry = new THREE.SphereGeometry(0.05, 16, 16);
-      const eyeMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+      const eyeMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x000000,
+        metalness: 0.5,
+        roughness: 0.5
+      });
       
       const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
       leftEye.position.set(-0.15, 0.1, 0.35);
@@ -84,41 +88,52 @@ export async function createBasicModel(type: CharacterPartType): Promise<string>
     case CharacterPartType.LEFT_ARM:
     case CharacterPartType.RIGHT_ARM:
       const armGroup = new THREE.Group();
+      const armMaterial = new THREE.MeshStandardMaterial({ 
+        name: 'arm-material',
+        color: 0x808080,
+        metalness: 0.5,
+        roughness: 0.5
+      });
+      
+      // Create a shoulder-anchored group
+      const shoulderAnchor = new THREE.Group();
+      shoulderAnchor.position.y = 1.8; // Shoulder height
+      armGroup.add(shoulderAnchor);
+
       const upperArm = new THREE.Mesh(
         new THREE.CylinderGeometry(0.15, 0.15, 0.6, 16),
-        material.clone()
+        armMaterial.clone()
       );
-      upperArm.position.y = 1.8; // Align with shoulders
-      upperArm.rotation.x = Math.PI / 2; // Rotate to hang down
-      armGroup.add(upperArm);
+      upperArm.position.y = -0.3; // Half the cylinder height down from shoulder
+      shoulderAnchor.add(upperArm);
 
       const elbow = new THREE.Mesh(
         new THREE.SphereGeometry(0.15, 16, 16),
-        material.clone()
+        armMaterial.clone()
       );
-      elbow.position.y = 1.5;
-      armGroup.add(elbow);
+      elbow.position.y = -0.6; // Full cylinder height down from shoulder
+      shoulderAnchor.add(elbow);
 
       const forearm = new THREE.Mesh(
         new THREE.CylinderGeometry(0.12, 0.12, 0.6, 16),
-        material.clone()
+        armMaterial.clone()
       );
-      forearm.position.y = 1.2;
-      forearm.rotation.x = Math.PI / 2; // Rotate to hang down
-      armGroup.add(forearm);
+      forearm.position.y = -0.9; // Position below elbow
+      shoulderAnchor.add(forearm);
 
       const hand = new THREE.Mesh(
         new THREE.SphereGeometry(0.12, 16, 16),
-        material.clone()
+        armMaterial.clone()
       );
-      hand.position.y = 0.9;
-      armGroup.add(hand);
+      hand.position.y = -1.2; // Position at bottom of forearm
+      shoulderAnchor.add(hand);
 
       if (type === CharacterPartType.LEFT_ARM) {
         armGroup.position.x = -0.5; // Align with left shoulder
-        armGroup.rotation.y = Math.PI; // Flip the entire arm group for left arm
+        shoulderAnchor.rotation.z = -0.3; // Flare out the left arm
       } else {
         armGroup.position.x = 0.5; // Align with right shoulder
+        shoulderAnchor.rotation.z = 0.3; // Flare out the right arm
       }
 
       scene.add(armGroup);
@@ -167,30 +182,35 @@ export async function createBasicModel(type: CharacterPartType): Promise<string>
 
     case CharacterPartType.WEAPON:
       const weaponGroup = new THREE.Group();
+      
+      // Create a hand-anchored group at the same position as the right hand
+      const handAnchor = new THREE.Group();
+      handAnchor.position.y = 0.6; // 1.8 (shoulder) - 1.2 (hand offset)
+      handAnchor.position.x = 0.5; // Right arm x position
+      handAnchor.rotation.z = 0.3; // Match right arm flare
+      weaponGroup.add(handAnchor);
+
       const handle = new THREE.Mesh(
         new THREE.CylinderGeometry(0.05, 0.05, 0.4, 16),
         material.clone()
       );
-      handle.position.y = 1.5; // Position at hand level
-      handle.position.x = 0.7; // Position to the right of the character
       handle.rotation.x = Math.PI / 2;
-      weaponGroup.add(handle);
+      handAnchor.add(handle);
 
       const blade = new THREE.Mesh(
         new THREE.BoxGeometry(0.1, 0.8, 0.05),
         material.clone()
       );
-      blade.position.y = 1.7;
-      blade.position.x = 0.7;
-      weaponGroup.add(blade);
+      blade.position.y = 0.2; // Position above handle
+      handAnchor.add(blade);
 
       const guard = new THREE.Mesh(
         new THREE.BoxGeometry(0.2, 0.1, 0.1),
         material.clone()
       );
-      guard.position.y = 1.5;
-      guard.position.x = 0.7;
-      weaponGroup.add(guard);
+      handAnchor.add(guard);
+
+      weaponGroup.position.z = 0.1; // Bring weapon slightly forward
 
       scene.add(weaponGroup);
       break;
@@ -207,7 +227,10 @@ export async function createBasicModel(type: CharacterPartType): Promise<string>
 
       const gem = new THREE.Mesh(
         new THREE.OctahedronGeometry(0.05, 0),
-        new THREE.MeshStandardMaterial({ color: 0xff0000 })
+        new THREE.MeshStandardMaterial({ 
+          name: `${type.toLowerCase()}-material`,
+          color: 0xff0000 
+        })
       );
       gem.position.y = 1.8;
       gem.position.x = -0.5;
